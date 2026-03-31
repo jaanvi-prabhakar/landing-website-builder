@@ -499,6 +499,63 @@
   font-weight: 300;
 }
 
+/* ─── 3D Dish Showcase ─── */
+.dish-showcase {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+  margin-bottom: 80px;
+}
+
+.dish-showcase-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 0;
+  overflow: hidden;
+  transition: border-color 0.3s;
+}
+
+.dish-showcase-card:hover {
+  border-color: rgba(201, 168, 76, 0.35);
+}
+
+.dish-disc-canvas {
+  position: relative;
+}
+
+.dish-disc-canvas canvas {
+  width: 100% !important;
+  height: 280px !important;
+  cursor: grab;
+}
+
+.dish-disc-canvas canvas:active {
+  cursor: grabbing;
+}
+
+.dish-disc-label {
+  padding: 24px 28px 28px;
+  text-align: center;
+}
+
+.dish-disc-name {
+  display: block;
+  font-family: var(--heading);
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--cream);
+  margin-bottom: 6px;
+}
+
+.dish-disc-sub {
+  display: block;
+  font-family: var(--body);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 300;
+  font-style: italic;
+}
+
 .menu-cta {
   text-align: center;
   margin-top: 56px;
@@ -787,6 +844,16 @@
   .menu-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  .dish-showcase {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dish-showcase-card:last-child {
+    grid-column: 1 / -1;
+    max-width: 50%;
+    margin: 0 auto;
+  }
 }
 
 @media (max-width: 768px) {
@@ -826,6 +893,20 @@
     grid-template-columns: 1fr;
     max-width: 440px;
     margin: 0 auto;
+  }
+
+  .dish-showcase {
+    grid-template-columns: 1fr;
+    max-width: 400px;
+    margin: 0 auto 60px;
+  }
+
+  .dish-showcase-card:last-child {
+    max-width: 100%;
+  }
+
+  .dish-disc-canvas canvas {
+    height: 240px !important;
   }
 
   .ambience {

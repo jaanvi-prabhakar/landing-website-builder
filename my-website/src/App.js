@@ -1,7 +1,8 @@
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import HeroParticles from './components/HeroParticles';
 import HeroPlate from './components/HeroPlate';
+import DishDisc3D from './components/DishDisc';
 import './App.css';
 
 /* ─── Animation Variants ─── */
@@ -289,8 +290,50 @@ function Story() {
   );
 }
 
+/* ─── Featured 3D Dishes ─── */
+const featuredDishes = [
+  {
+    color: '#b8711a',
+    emissive: '#5a3508',
+    spotColor: '#d4912a',
+    label: 'Saffron Curry',
+    subtitle: 'Rich, aromatic, unforgettable',
+  },
+  {
+    color: '#8b2c1a',
+    emissive: '#3d1009',
+    spotColor: '#c0392b',
+    label: 'Tandoori Flame',
+    subtitle: 'Charred to smoky perfection',
+  },
+  {
+    color: '#1a6b4a',
+    emissive: '#0a3324',
+    spotColor: '#27ae60',
+    label: 'Herb Garden',
+    subtitle: 'Fresh, vibrant, seasonal',
+  },
+];
+
+function useInView(ref, margin = '-100px') {
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    if (!ref.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setInView(true); },
+      { rootMargin: margin, threshold: 0.1 }
+    );
+    observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [ref, margin]);
+  return inView;
+}
+
 /* ─── Menu ─── */
 function Menu() {
+  const showcaseRef = useRef(null);
+  const showcaseInView = useInView(showcaseRef);
+
   return (
     <section className="menu" id="menu">
       <div className="menu-inner">
@@ -310,6 +353,30 @@ function Menu() {
             Each dish is crafted to share, savour, and remember.
           </motion.p>
         </motion.div>
+
+        {/* ── 3D Dish Showcase ── */}
+        <div className="dish-showcase" ref={showcaseRef}>
+          {featuredDishes.map((dish, i) => (
+            <motion.div
+              className="dish-showcase-card"
+              key={dish.label}
+              initial={{ opacity: 0, y: 60 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-60px' }}
+              transition={{ duration: 0.8, delay: i * 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
+            >
+              <DishDisc3D
+                color={dish.color}
+                emissive={dish.emissive}
+                spotColor={dish.spotColor}
+                label={dish.label}
+                subtitle={dish.subtitle}
+                isInView={showcaseInView}
+              />
+            </motion.div>
+          ))}
+        </div>
+
         <motion.div
           className="menu-grid"
           variants={staggerSlow}

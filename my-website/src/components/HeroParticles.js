@@ -1,5 +1,5 @@
 import { useRef, useMemo, useCallback } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
 /* ─── Config ─── */
@@ -58,7 +58,7 @@ const vertexShader = `
     vColor = aColor;
     // Depth-based fade: particles further from camera are dimmer
     float depthFade = smoothstep(${DEPTH.toFixed(1)}, 0.0, abs(pos.z));
-    vAlpha = (0.3 + aRandom * 0.5) * depthFade;
+    vAlpha = (0.25 + aRandom * 0.2) * depthFade;
 
     vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
     gl_PointSize = aSize * pulse * uPixelRatio * (120.0 / -mvPosition.z);
@@ -78,7 +78,7 @@ const fragmentShader = `
     // Soft glow falloff
     float glow = smoothstep(0.5, 0.0, d);
     float core = smoothstep(0.15, 0.0, d) * 0.6;
-    float alpha = (glow + core) * vAlpha;
+    float alpha = min((glow + core) * vAlpha, 0.85);
 
     gl_FragColor = vec4(vColor, alpha);
   }
@@ -89,7 +89,6 @@ function Particles() {
   const meshRef = useRef();
   const mouseRef = useRef(new THREE.Vector2(0, 0));
   const mouseTarget = useRef(new THREE.Vector2(0, 0));
-  const { viewport } = useThree();
 
   const { positions, sizes, randoms, colors, velocities } = useMemo(() => {
     const positions = new Float32Array(PARTICLE_COUNT * 3);
@@ -104,7 +103,7 @@ function Particles() {
       positions[i * 3 + 1] = (Math.random() - 0.5) * 12;
       positions[i * 3 + 2] = (Math.random() - 0.5) * DEPTH;
 
-      sizes[i] = Math.random() * 3.0 + 0.5;
+      sizes[i] = (Math.random() * 3.0 + 0.5) * 1;
       randoms[i] = Math.random();
 
       const color = COLORS[Math.floor(Math.random() * COLORS.length)];
@@ -194,7 +193,7 @@ function Embers() {
       positions[i * 3 + 1] = (Math.random() - 0.5) * 10;
       positions[i * 3 + 2] = (Math.random() - 0.5) * 6;
 
-      sizes[i] = Math.random() * 6.0 + 3.0;
+      sizes[i] = (Math.random() * 6.0 + 3.0) * 1;
       randoms[i] = Math.random();
 
       // Embers are mostly bright saffron/gold

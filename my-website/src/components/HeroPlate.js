@@ -1,9 +1,9 @@
-import { useRef, useMemo } from 'react';
+import { useRef, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Float, Environment } from '@react-three/drei';
+import { Float, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 
-/* ─── Mouse tracker (shared across meshes) ─── */
+/* ─── Mouse tracker ─── */
 const mouse = { x: 0, y: 0, targetX: 0, targetY: 0 };
 
 if (typeof window !== 'undefined') {
@@ -13,55 +13,22 @@ if (typeof window !== 'undefined') {
   });
 }
 
-/* ─── Materials ─── */
-function useGoldMaterial() {
-  return useMemo(
-    () =>
-      new THREE.MeshStandardMaterial({
-        color: new THREE.Color('#c9a84c'),
-        metalness: 0.85,
-        roughness: 0.2,
-        emissive: new THREE.Color('#5a3d0a'),
-        emissiveIntensity: 0.15,
-      }),
-    []
-  );
-}
-
-function usePlateMaterial() {
-  return useMemo(
-    () =>
-      new THREE.MeshStandardMaterial({
-        color: new THREE.Color('#1a130b'),
-        metalness: 0.3,
-        roughness: 0.6,
-        emissive: new THREE.Color('#0d0a06'),
-        emissiveIntensity: 0.05,
-      }),
-    []
-  );
-}
-
-function useInnerMaterial() {
-  return useMemo(
-    () =>
-      new THREE.MeshStandardMaterial({
-        color: new THREE.Color('#2a1f12'),
-        metalness: 0.2,
-        roughness: 0.7,
-        emissive: new THREE.Color('#1a130b'),
-        emissiveIntensity: 0.1,
-      }),
-    []
-  );
-}
-
-/* ─── The floating plate assembly ─── */
-function Plate() {
+/* ─── GLB Dish Model ─── */
+function DishModel() {
   const groupRef = useRef();
-  const goldMat = useGoldMaterial();
-  const plateMat = usePlateMaterial();
-  const innerMat = useInnerMaterial();
+  const { scene } = useGLTF('/dish.glb');
+
+  // Center and scale the model on first load
+  useEffect(() => {
+    const box = new THREE.Box3().setFromObject(scene);
+    const center = box.getCenter(new THREE.Vector3());
+    const size = box.getSize(new THREE.Vector3());
+    const maxDim = Math.max(size.x, size.y, size.z);
+    const scale = 2.8 / maxDim;
+
+    scene.position.set(-center.x * scale, -center.y * scale, -center.z * scale);
+    scene.scale.setScalar(scale);
+  }, [scene]);
 
   useFrame((state) => {
     if (!groupRef.current) return;
@@ -83,35 +50,7 @@ function Plate() {
 
   return (
     <group ref={groupRef} rotation={[-0.3, 0, 0]}>
-      {/* ── Plate base (flat cylinder) ── */}
-      <mesh material={plateMat} position={[0, 0, 0]} castShadow receiveShadow>
-        <cylinderGeometry args={[1.8, 1.85, 0.12, 64]} />
-      </mesh>
-
-      {/* ── Inner plate surface (slightly smaller, raised) ── */}
-      <mesh material={innerMat} position={[0, 0.07, 0]}>
-        <cylinderGeometry args={[1.5, 1.55, 0.06, 64]} />
-      </mesh>
-
-      {/* ── Gold outer rim (torus) ── */}
-      <mesh material={goldMat} position={[0, 0.04, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[1.82, 0.06, 16, 64]} />
-      </mesh>
-
-      {/* ── Gold inner rim accent ── */}
-      <mesh material={goldMat} position={[0, 0.08, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[1.52, 0.03, 12, 64]} />
-      </mesh>
-
-      {/* ── Subtle gold ring decoration in center ── */}
-      <mesh material={goldMat} position={[0, 0.085, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[0.6, 0.015, 12, 48]} />
-      </mesh>
-
-      {/* ── Plate underside lip ── */}
-      <mesh material={plateMat} position={[0, -0.06, 0]}>
-        <cylinderGeometry args={[1.1, 1.15, 0.06, 48]} />
-      </mesh>
+      <primitive object={scene} />
     </group>
   );
 }
@@ -160,7 +99,7 @@ function Scene() {
       />
 
       <Float speed={1.5} rotationIntensity={0} floatIntensity={0.3} floatingRange={[-0.05, 0.05]}>
-        <Plate />
+        <DishModel />
       </Float>
     </>
   );
@@ -181,3 +120,5 @@ export default function HeroPlate() {
     </div>
   );
 }
+
+useGLTF.preload('/dish.glb');
